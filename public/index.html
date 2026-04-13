@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>API AWS</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      margin: 20px auto;
+      width: 340px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+    }
+    img {
+      width: 150px;
+      border-radius: 10px;
+    }
+    input {
+      width: 90%;
+      padding: 5px;
+      margin-bottom: 5px;
+    }
+    button {
+      margin: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PERFIL -->
+  <div class="card">
+    <img src="recursos/imgEdu.jpg" alt="Eduardo">
+    <h2>Eduardo José Matos Uc</h2>
+    <p>Estudiante de Ingeniería de Software en la FMAT · UADY</p>
+  </div>
+
+  <!-- ALUMNOS -->
+  <div class="card">
+    <h3>Alumnos</h3>
+
+    <input id="a_id" placeholder="ID"><br>
+    <input id="a_nombre" placeholder="Nombre"><br>
+    <input id="a_apellidos" placeholder="Apellidos"><br>
+    <input id="a_matricula" placeholder="Matrícula"><br>
+    <input id="a_promedio" placeholder="Promedio"><br>
+
+    <button onclick="crearAlumno()">Crear</button>
+    <button onclick="actualizarAlumno()">Actualizar</button>
+
+    <ul id="listaAlumnos"></ul>
+  </div>
+
+  <!-- PROFESORES -->
+  <div class="card">
+    <h3>Profesores</h3>
+
+    <input id="p_id" placeholder="ID"><br>
+    <input id="p_nombre" placeholder="Nombre"><br>
+    <input id="p_apellidos" placeholder="Apellidos"><br>
+    <input id="p_numero" placeholder="Número Empleado"><br>
+    <input id="p_horas" placeholder="Horas Clase"><br>
+
+    <button onclick="crearProfesor()">Crear</button>
+    <button onclick="actualizarProfesor()">Actualizar</button>
+
+    <ul id="listaProfesores"></ul>
+  </div>
+
+  <script>
+    // ===== ALUMNOS =====
+    async function cargarAlumnos() {
+      const res = await fetch("/alumnos");
+      const data = await res.json();
+
+      const lista = document.getElementById("listaAlumnos");
+      lista.innerHTML = "";
+
+      data.forEach(a => {
+        const li = document.createElement("li");
+
+        li.innerHTML = `
+          ${a.id} - ${a.nombres} (${a.matricula})
+          <button onclick="llenarAlumno(${a.id}, '${a.nombres}', '${a.apellidos}', '${a.matricula}', ${a.promedio})">✏️</button>
+          <button onclick="eliminarAlumno(${a.id})">❌</button>
+        `;
+
+        lista.appendChild(li);
+      });
+    }
+
+    function llenarAlumno(id, nombres, apellidos, matricula, promedio) {
+      document.getElementById("a_id").value = id;
+      document.getElementById("a_nombre").value = nombres;
+      document.getElementById("a_apellidos").value = apellidos;
+      document.getElementById("a_matricula").value = matricula;
+      document.getElementById("a_promedio").value = promedio;
+    }
+
+    async function crearAlumno() {
+      const alumno = {
+        id: parseInt(document.getElementById("a_id").value),
+        nombres: document.getElementById("a_nombre").value,
+        apellidos: document.getElementById("a_apellidos").value,
+        matricula: document.getElementById("a_matricula").value,
+        promedio: parseFloat(document.getElementById("a_promedio").value)
+      };
+
+      await fetch("/alumnos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(alumno)
+      });
+
+      cargarAlumnos();
+    }
+
+    async function actualizarAlumno() {
+      const id = document.getElementById("a_id").value;
+
+      const alumno = {
+        id: parseInt(id),
+        nombres: document.getElementById("a_nombre").value,
+        apellidos: document.getElementById("a_apellidos").value,
+        matricula: document.getElementById("a_matricula").value,
+        promedio: parseFloat(document.getElementById("a_promedio").value)
+      };
+
+      await fetch("/alumnos/" + id, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(alumno)
+      });
+
+      cargarAlumnos();
+    }
+
+    async function eliminarAlumno(id) {
+      if (!confirm("¿Eliminar alumno?")) return;
+
+      await fetch("/alumnos/" + id, {
+        method: "DELETE"
+      });
+
+      cargarAlumnos();
+    }
+
+    // ===== PROFESORES =====
+    async function cargarProfesores() {
+      const res = await fetch("/profesores");
+      const data = await res.json();
+
+      const lista = document.getElementById("listaProfesores");
+      lista.innerHTML = "";
+
+      data.forEach(p => {
+        const li = document.createElement("li");
+
+        li.innerHTML = `
+          ${p.id} - ${p.nombres} (${p.horasClase} hrs)
+          <button onclick="llenarProfesor(${p.id}, '${p.nombres}', '${p.apellidos}', ${p.numeroEmpleado}, ${p.horasClase})">✏️</button>
+          <button onclick="eliminarProfesor(${p.id})">❌</button>
+        `;
+
+        lista.appendChild(li);
+      });
+    }
+
+    function llenarProfesor(id, nombres, apellidos, numeroEmpleado, horasClase) {
+      document.getElementById("p_id").value = id;
+      document.getElementById("p_nombre").value = nombres;
+      document.getElementById("p_apellidos").value = apellidos;
+      document.getElementById("p_numero").value = numeroEmpleado;
+      document.getElementById("p_horas").value = horasClase;
+    }
+
+    async function crearProfesor() {
+      const profesor = {
+        id: parseInt(document.getElementById("p_id").value),
+        nombres: document.getElementById("p_nombre").value,
+        apellidos: document.getElementById("p_apellidos").value,
+        numeroEmpleado: parseInt(document.getElementById("p_numero").value),
+        horasClase: parseFloat(document.getElementById("p_horas").value)
+      };
+
+      await fetch("/profesores", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profesor)
+      });
+
+      cargarProfesores();
+    }
+
+    async function actualizarProfesor() {
+      const id = document.getElementById("p_id").value;
+
+      const profesor = {
+        id: parseInt(id),
+        nombres: document.getElementById("p_nombre").value,
+        apellidos: document.getElementById("p_apellidos").value,
+        numeroEmpleado: parseInt(document.getElementById("p_numero").value),
+        horasClase: parseFloat(document.getElementById("p_horas").value)
+      };
+
+      await fetch("/profesores/" + id, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profesor)
+      });
+
+      cargarProfesores();
+    }
+
+    async function eliminarProfesor(id) {
+      if (!confirm("¿Eliminar profesor?")) return;
+
+      await fetch("/profesores/" + id, {
+        method: "DELETE"
+      });
+
+      cargarProfesores();
+    }
+
+    // INICIO
+    cargarAlumnos();
+    cargarProfesores();
+  </script>
+
+</body>
+</html>
