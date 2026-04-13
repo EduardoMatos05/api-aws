@@ -147,6 +147,8 @@ app.use((req, res) => {
 });
 
 // ====== SERVER ======
-app.listen(8080, () => {
-    console.log('Servidor corriendo en puerto 8080');
+const PORT = process.env.PORT || 8080;
+
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en puerto ${PORT}`);
 });
